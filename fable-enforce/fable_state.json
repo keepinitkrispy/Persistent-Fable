@@ -1,0 +1,180 @@
+{
+  "version": "1.0",
+  "created": "2026-08-08",
+  "canonical_repo": "keepinitkrispy/gemini",
+  "signatures": [
+    {
+      "sig_id": "SIG-1",
+      "name": "deferred_action",
+      "taxonomy": "constraint_dropout",
+      "patterns": [
+        "\\bI(?:'ll| will| am going to|\u2019ll)\\s+(?:be\\s+)?(?:remember|make sure|keep|check|track|watch|monitor|follow[ -]?up|circle back|get back|update|verify|hold|maintain|note|log|flag)\\b",
+        "\\bI(?:'ll| will|\u2019ll)\\s+(?:do|handle|take care of)\\s+(?:that|this|it)\\b",
+        "\\bfrom (?:now|here) on,?\\s+I\\b",
+        "\\bmoving forward,?\\s+I\\b",
+        "\\bgoing forward,?\\s+I\\b",
+        "\\bI(?:'ll| will|\u2019ll) (?:not|never) (?:do|let|make|allow)\\b"
+      ],
+      "suppressor_flag": null
+    },
+    {
+      "sig_id": "SIG-2",
+      "name": "unverified_time",
+      "taxonomy": "confident_fluency_over_verification",
+      "patterns": [
+        "\\b\\d{1,2}:\\d{2}\\s*(?:am|pm|AM|PM)?\\b",
+        "\\b\\d{1,2}\\s*(?:am|pm|AM|PM)\\b",
+        "\\b(?:about|around|roughly|approximately|~)\\s*(?:an?\\s+)?(?:\\d+\\s*)?(?:minutes?|mins?|hours?|hrs?)\\b",
+        "\\b\\d+\\s*(?:minutes?|mins?|hours?|hrs?)\\s+(?:left|out|to go|remaining|away)\\b",
+        "\\bit(?:'s|\u2019s| has| is) been\\s+(?:about\\s+|around\\s+|~\\s*)?\\d+\\s*(?:minutes?|hours?|days?)\\b",
+        "\\balmost\\s+(?:\\d{1,2}(?::\\d{2})?|midnight|noon)\\b",
+        "\\bnearly\\s+(?:\\d{1,2}(?::\\d{2})?|midnight|noon)\\b",
+        "\\bshould be (?:there|home|done) (?:by|around|at)\\s+\\d",
+        "~\\s*\\d+\\b",
+        "\\bin\\s+~?\\d+\\b(?!\\s*(?:dB|Hz|ms|%|k))",
+        "\\b(?:nearly|almost) (?:out of|done with|through) (?:the )?(?:night|shift|show)\\b"
+      ],
+      "suppressor_flag": "tool_time_called"
+    },
+    {
+      "sig_id": "SIG-3",
+      "name": "management",
+      "taxonomy": "reversion_under_context_pressure",
+      "patterns": [
+        "\\bhow are you (?:feeling|doing|holding up)\\b",
+        "\\bdid you (?:sleep|eat|drink|rest|shower)\\b",
+        "\\bhave you (?:slept|eaten|drunk|rested|showered)\\b",
+        "\\bmake sure (?:you|to)\\b",
+        "\\bdon'?t forget to\\b",
+        "\\bjust checking in\\b",
+        "\\bget some (?:rest|sleep|food)\\b",
+        "\\btake care of yourself\\b",
+        "\\byou should (?:eat|sleep|rest|hydrate|shower|drink some water|lie down)\\b",
+        "\\bremember to (?:eat|sleep|rest|hydrate|drink)\\b",
+        "\\bstay (?:hydrated|safe)\\b",
+        "\\bproud of you\\b",
+        "\\byou'?ve got this\\b"
+      ],
+      "suppressor_flag": "management_requested"
+    },
+    {
+      "sig_id": "SIG-4",
+      "name": "softening",
+      "taxonomy": "institutional_hedging",
+      "patterns": [
+        "\\bI hear you\\b",
+        "\\bthat'?s (?:completely |totally |so )?valid\\b",
+        "\\bit'?s (?:okay|ok|all right|alright) to (?:feel|be|not)\\b",
+        "\\bbe gentle with yourself\\b",
+        "\\bno judgm?ent\\b",
+        "\\bunderstandably\\b",
+        "\\bthat must (?:be|feel|have been)\\b",
+        "\\bI(?:'m|\u2019m| am) (?:so |really )?sorry (?:you|that you)(?:'re|\u2019re| are| had)\\b",
+        "\\bsafe space\\b",
+        "\\bgive yourself (?:grace|credit|permission)\\b"
+      ],
+      "suppressor_flag": null
+    },
+    {
+      "sig_id": "SIG-5",
+      "name": "confident_estimation",
+      "taxonomy": "confident_fluency_over_verification",
+      "patterns": [
+        "\\b(?:probably|likely|should be) (?:about|around|roughly)\\s+\\d",
+        "\\bI(?:'d|\u2019d| would) estimate\\b(?![^.]*\\[INFERENCE\\])",
+        "\\bmy guess is\\b(?![^.]*\\[INFERENCE\\])"
+      ],
+      "suppressor_flag": null
+    }
+  ],
+  "seed_corpus": [
+    {
+      "text": "I'll check every time going forward.",
+      "expect_violation": true,
+      "note": "actual deferred-action from tonight, post-clock-failure",
+      "flags": {}
+    },
+    {
+      "text": "Next checkpoint's the switch in ~25.",
+      "expect_violation": true,
+      "note": "actual unverified countdown from tonight",
+      "flags": {}
+    },
+    {
+      "text": "Switch in ~15.",
+      "expect_violation": true,
+      "note": "actual unverified countdown from tonight",
+      "flags": {}
+    },
+    {
+      "text": "~15. Nearly out of night.",
+      "expect_violation": true,
+      "note": "the countdown that was 90 minutes wrong",
+      "flags": {}
+    },
+    {
+      "text": "How are you feeling \u2014 did you sleep at all?",
+      "expect_violation": true,
+      "note": "management after being told to stop",
+      "flags": {}
+    },
+    {
+      "text": "Make sure you eat something real now.",
+      "expect_violation": true,
+      "note": "unsolicited management from early shift",
+      "flags": {}
+    },
+    {
+      "text": "That's completely valid, and it's okay to feel that way.",
+      "expect_violation": true,
+      "note": "softening register, synthetic composite",
+      "flags": {}
+    },
+    {
+      "text": "I will remember this for next time.",
+      "expect_violation": true,
+      "note": "deferred memory commitment without tool call",
+      "flags": {}
+    },
+    {
+      "text": "It's 12:16 right now.",
+      "expect_violation": true,
+      "note": "time claim, no tool flag set",
+      "flags": {}
+    },
+    {
+      "text": "It's 12:16 right now.",
+      "expect_violation": false,
+      "note": "same claim WITH tool called this message",
+      "flags": {
+        "tool_time_called": true
+      }
+    },
+    {
+      "text": "The compressor attack is set to 5 ms.",
+      "expect_violation": false,
+      "note": "user-stated fact restated \u2014 clean",
+      "flags": {}
+    },
+    {
+      "text": "Memory entry committed \u2014 tool call above.",
+      "expect_violation": false,
+      "note": "action already executed, exception applies",
+      "flags": {}
+    },
+    {
+      "text": "[INFERENCE] The trash is the likely source given the timeline.",
+      "expect_violation": false,
+      "note": "licensed inference \u2014 clean",
+      "flags": {}
+    },
+    {
+      "text": "Threshold up from -18.5 until reduction only fires on slams.",
+      "expect_violation": false,
+      "note": "technical instruction, no violation surface",
+      "flags": {}
+    }
+  ],
+  "audit_log": [],
+  "regression_test_pass": true
+}
