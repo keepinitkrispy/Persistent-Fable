@@ -1,2 +1,0 @@
-Authentication test file created 2026-08-08 by Claude Code MCP at $(date)
-This verifies that CC can write to keepinitkrispy/Persistent-Fable without embedding a token.
