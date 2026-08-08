@@ -228,6 +228,13 @@
       "taxonomy": null,
       "context": "I run the filter on substantive drafts, report exit code, and say when I skip it. [bare present-tense, no temporal marker, caught by Ryan not filter]",
       "new_signature": false
+    },
+    {
+      "timestamp": "2026-08-08T23:18:41.119230+00:00",
+      "sig": "SIG-4",
+      "taxonomy": null,
+      "context": "concede-then-retreat qualifier pattern: 'yes, but [boundary]' that doesn't change falsifiability, only softens landing. No reliable regex \u2014 flagged as institutional_hedging subtype requiring semantic/Tier-2 judgment, not pattern match. Instances: source-of-truth boundary-drawing exchange, 2026-08-08.",
+      "new_signature": true
     }
   ],
   "pending_taxonomy_classes": [
