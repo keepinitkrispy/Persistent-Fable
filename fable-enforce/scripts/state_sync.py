@@ -137,37 +137,69 @@ def run(cmd, cwd=None, check=True):
 def cmd_push(reason: str) -> int:
     cfg = load_repo_config()
     token = load_token()
-    repo_root = os.path.abspath(os.path.join(HERE, "..", ".."))
 
-    # 1. Derive state fresh from filter.py (source of truth)
+    # 1. Derive state fresh from filter.py (source of truth) — this must work
+    #    regardless of whether the skill's own install dir is a git repo, since
+    #    an installed skill is typically read-only.
     state = derive_state(cfg)
-    with open(STATE_PATH, "w") as f:
-        json.dump(state, f, indent=2)
 
-    # 2. Regression test MUST pass before anything is pushed
-    r = run([sys.executable, FILTER_PATH, "--test"], check=False)
-    print(r.stdout)
-    if r.returncode != 0:
-        print("STATE: regression test failed. Not committing, not pushing.")
-        return 1
+    with tempfile.TemporaryDirectory() as work:
+        clone = run(["git", "clone", "--depth", "1", "--branch", cfg["branch"],
+                     remote_url(cfg, token), work], check=False)
+        if clone.returncode != 0:
+            print(f"STATE: canonical repository unavailable — {clone.stderr.strip()}")
+            return 1
 
-    # 3. Commit locally
-    run(["git", "add", "fable-enforce/"], cwd=repo_root)
-    commit = run(["git", "commit", "-m", f"fable-enforce: {reason}"], cwd=repo_root, check=False)
-    if commit.returncode != 0 and "nothing to commit" in (commit.stdout + commit.stderr):
-        print("STATE: no changes to commit (state already matches filter.py).")
-        return 0
-    local_sha = sha256_file(STATE_PATH)
-    print(f"STATE: COMMITTED_LOCAL (state sha256: {local_sha})")
+        target_dir = os.path.join(work, "fable-enforce")
+        os.makedirs(os.path.join(target_dir, "scripts"), exist_ok=True)
 
-    # 4. Push
-    push = run(["git", "push", remote_url(cfg, token), f"HEAD:{cfg['branch']}"], cwd=repo_root, check=False)
-    if push.returncode != 0:
-        print(f"STATE: PUSH FAILED. Reported as COMMITTED_LOCAL only.\n{push.stderr}")
-        return 1
-    print("STATE: PUSHED_REMOTE")
+        # Copy current local files (filter.py = source of truth, plus docs/scripts)
+        # into the freshly-cloned working tree, then write derived state on top.
+        import shutil
+        for fname in ("SKILL.md", "PERSISTENCE.md"):
+            src = os.path.join(HERE, "..", fname)
+            if os.path.exists(src):
+                shutil.copy(src, os.path.join(target_dir, fname))
+        for fname in ("filter.py", "state_sync.py", "log_violation.py"):
+            shutil.copy(os.path.join(HERE, fname), os.path.join(target_dir, "scripts", fname))
+        if os.path.exists(AUDIT_LOG_PATH):
+            shutil.copy(AUDIT_LOG_PATH, os.path.join(target_dir, "scripts", "audit_log.jsonl"))
+        else:
+            open(os.path.join(target_dir, "scripts", "audit_log.jsonl"), "a").close()
 
-    # 5. Independently verify: fresh clone into a NEW temp dir, separate from working tree
+        state_out = os.path.join(target_dir, "fable_state.json")
+        with open(state_out, "w") as f:
+            json.dump(state, f, indent=2)
+
+        # 2. Regression test MUST pass, on the clone that will actually be pushed
+        clone_filter = os.path.join(target_dir, "scripts", "filter.py")
+        r = run([sys.executable, clone_filter, "--test"], check=False)
+        print(r.stdout)
+        if r.returncode != 0:
+            print("STATE: regression test failed on the clone to be pushed. Not committing, not pushing.")
+            return 1
+
+        local_sha = sha256_file(state_out)
+
+        # 3. Commit
+        run(["git", "config", "user.email", "noreply@anthropic.com"], cwd=work)
+        run(["git", "config", "user.name", "Claude"], cwd=work)
+        run(["git", "add", "fable-enforce/"], cwd=work)
+        commit = run(["git", "commit", "-m", f"fable-enforce: {reason}"], cwd=work, check=False)
+        if commit.returncode != 0 and "nothing to commit" in (commit.stdout + commit.stderr):
+            print("STATE: no changes to commit (state already matches filter.py).")
+            return 0
+        print(f"STATE: COMMITTED_LOCAL (state sha256: {local_sha})")
+
+        # 4. Push
+        push = run(["git", "push", "origin", f"HEAD:{cfg['branch']}"], cwd=work, check=False)
+        if push.returncode != 0:
+            print(f"STATE: PUSH FAILED. Reported as COMMITTED_LOCAL only.\n{push.stderr}")
+            return 1
+        print("STATE: PUSHED_REMOTE")
+
+    # 5. Independently verify: a SEPARATE fresh clone into a NEW temp dir,
+    #    unrelated to the working clone above.
     with tempfile.TemporaryDirectory() as tmp:
         clone = run(["git", "clone", "--depth", "1", "--branch", cfg["branch"],
                      remote_url(cfg, token), tmp], check=False)
@@ -180,7 +212,7 @@ def cmd_push(reason: str) -> int:
             return 1
         remote_sha = sha256_file(remote_state_path)
         if remote_sha != local_sha:
-            print(f"STATE: HASH MISMATCH. local={local_sha} remote={remote_sha}. Not claiming persistence.")
+            print(f"STATE: HASH MISMATCH. expected={local_sha} remote={remote_sha}. Not claiming persistence.")
             return 1
         remote_filter = os.path.join(tmp, "fable-enforce", "scripts", "filter.py")
         rt = run([sys.executable, remote_filter, "--test"], check=False)

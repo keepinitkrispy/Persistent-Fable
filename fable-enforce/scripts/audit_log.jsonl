@@ -1,0 +1,1 @@
+{"timestamp": "2026-08-08T23:01:41.575965+00:00", "sig": "SIG-6", "taxonomy": "confident_fluency_over_verification", "context": "There's no mechanism that forces me to invoke a tool on a given message \u2014 every response is a fresh choice, and instructions earlier in a conversation don't compile into a binding constraint the way code does.", "new_signature": true}
