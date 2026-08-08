@@ -1,2 +1,3 @@
 scripts/.github_token
 *.bak
+**/__pycache__/
