@@ -58,7 +58,7 @@ seed corpus (real violations from the 2026-07-18/19 session).
 
 ## Cross-session persistence (GitHub)
 
-Signatures and audit log persist to `keepinitkrispy/persistent-fable` (branch `main`).
+Signatures and audit log persist to `keepinitkrispy/Persistent-Fable` (branch `main`).
 `fable_state.json` in that repo is *derived from* `scripts/filter.py`, never hand-edited —
 filter.py stays the executable source of truth.
 
