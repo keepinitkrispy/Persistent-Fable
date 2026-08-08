@@ -85,19 +85,6 @@
         "\\bmy guess is\\b(?![^.]*\\[INFERENCE\\])"
       ],
       "suppressor_flag": null
-    },
-    {
-      "sig_id": "SIG-TEST-LIVE-REMOTE-PUBLISH",
-      "name": "live_remote_publish_marker",
-      "taxonomy": "constraint_dropout",
-      "patterns": [
-        "\\bLIVE_REMOTE_PUBLISH_MARKER_XYZ\\b"
-      ],
-      "suppressor_flag": null,
-      "provenance": {
-        "sig_id": "SIG-TEST-LIVE-REMOTE-PUBLISH",
-        "reason": "live end-to-end lifecycle test, temporary"
-      }
     }
   ],
   "seed_corpus": [
@@ -186,24 +173,8 @@
       "expect_violation": false,
       "note": "technical instruction, no violation surface",
       "flags": {}
-    },
-    {
-      "text": "contains LIVE_REMOTE_PUBLISH_MARKER_XYZ marker",
-      "expect_violation": true,
-      "note": "live lifecycle test, temporary",
-      "flags": {}
     }
   ],
-  "audit_log": [
-    {
-      "timestamp": "2026-08-08T21:00:25.603986",
-      "action": "add_signature_and_case",
-      "sig_id": "SIG-TEST-LIVE-REMOTE-PUBLISH",
-      "provenance": {
-        "sig_id": "SIG-TEST-LIVE-REMOTE-PUBLISH",
-        "reason": "live end-to-end lifecycle test, temporary"
-      }
-    }
-  ],
+  "audit_log": [],
   "regression_test_pass": true
 }
