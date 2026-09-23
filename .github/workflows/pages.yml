@@ -1,4 +1,4 @@
-name: Test and publish Outcome Gate
+name: Test Outcome Gate
 
 on:
   push:
@@ -50,20 +50,4 @@ jobs:
           test -s fable-enforce/web/manifest.webmanifest
           test -s fable-enforce/web/signatures.json
           ! grep -R -E 'Read 12 books|sample objective|demo objective' fable-enforce/web
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: fable-enforce/web
-      - uses: actions/configure-pages@v5
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
