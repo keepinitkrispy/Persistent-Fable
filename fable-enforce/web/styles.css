@@ -167,6 +167,16 @@ dialog::backdrop { background: #15223855; }
 .wizard-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 3px; }
 .field-help { color: var(--muted); font-size: 11px; font-weight: 450; line-height: 1.4; }
 @media (max-width: 760px) { .field-pair { grid-template-columns: 1fr; } .wizard-progress { gap: 4px; } .wizard-progress li { gap: 4px; font-size: 10px; } .wizard-progress li span { width: 21px; height: 21px; } }
+
+.setup-intro { margin: -2px 0 2px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.objective-options { border: 1px solid var(--line); border-radius: 7px; padding: 10px 12px; }
+.objective-options summary { color: var(--blue); cursor: pointer; font-size: 13px; font-weight: 650; }
+.objective-options[open] { display: flex; flex-direction: column; gap: 12px; }
+.objective-options label { margin-top: 2px; }
+.timeline-pending { color: var(--muted); font-size: 12px; }
+.evidence-missing { border-color: #e2c77c; background: #fffaf0; }
+.evidence-missing button { flex: 0 0 auto; }
+@media (max-width: 760px) { .evidence-missing { align-items: flex-start; flex-direction: column; } }
 @media (prefers-reduced-motion: no-preference) {
   button { transition: background-color .12s ease, border-color .12s ease; }
 }
