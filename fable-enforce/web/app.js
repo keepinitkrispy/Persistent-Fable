@@ -135,6 +135,26 @@ function render() {
   else renderObjective(obj);
 }
 
+function solbridgeIssueUrl() {
+  const command = {
+    id: `sync-objective-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    device_id: 'ryan-pixel',
+    tool: 'write_text',
+    args: {
+      path: 'objectives/active.json',
+      text: JSON.stringify(state, null, 2) + '\n',
+    },
+  };
+  const query = new URLSearchParams({
+    title: `SolBridge objective: ${activeObjective()?.statement?.slice(0, 64) || 'browser goal'}`,
+    labels: 'solbridge-command',
+    body: JSON.stringify(command),
+  });
+  const url = `https://github.com/keepinitkrispy/solbridge-bus/issues/new?${query.toString()}`;
+  if (url.length > 7000) throw new Error('This saved goal is too large to send in one GitHub link. Download a backup instead.');
+  return url;
+}
+
 function renderObjective(obj) {
   const result = outcome(obj);
   const current = lastOf(obj.observations)?.value ?? obj.baseline.value;
@@ -168,6 +188,12 @@ function renderObjective(obj) {
       </div>
     </section>
     <section class="section">
+      <div class="sync-card">
+        <div><h2>Use this goal on your Pixel</h2><p>GitHub opens a ready-to-send private request. Tap <strong>Create issue</strong>; SolBridge will copy this saved goal to your phone. No token to copy.</p></div>
+        <button class="primary-button" id="sendToPixelBtn" type="button">Send goal to Pixel</button>
+      </div>
+    </section>
+    <section class="section">
       <div class="section-header"><div><h2>State transition log</h2><p>${obj.observations.length} observed change${obj.observations.length === 1 ? '' : 's'} recorded</p></div></div>
       <div class="timeline">${timeline}</div>
     </section>
@@ -180,6 +206,10 @@ function renderObjective(obj) {
     </section>`;
   document.querySelector('#recordTransitionBtn')?.addEventListener('click', () => openTransitionDialog(obj));
   document.querySelector('#addBaselineEvidenceBtn')?.addEventListener('click', openBaselineEvidenceDialog);
+  document.querySelector('#sendToPixelBtn')?.addEventListener('click', () => {
+    try { window.location.assign(solbridgeIssueUrl()); }
+    catch (error) { toast(error.message); }
+  });
 }
 
 function generationLocked(obj) {
