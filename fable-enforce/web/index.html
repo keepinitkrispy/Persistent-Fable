@@ -13,7 +13,7 @@
   <header class="topbar">
     <a class="wordmark" href="#objective" aria-label="Outcome Gate home">Outcome Gate</a>
     <div class="runtime"><span class="runtime-dot"></span>Shadow runtime v4.2</div>
-    <button class="quiet-button" id="exportBtn" type="button">Export state</button>
+    <button class="quiet-button" id="exportBtn" type="button">Download backup</button>
   </header>
 
   <main class="shell">
@@ -22,7 +22,7 @@
       <button class="nav-item" data-view="discover" type="button"><span>02</span> Explore</button>
       <button class="nav-item" data-view="verify" type="button"><span>03</span> Check result</button>
       <div class="rail-bottom">
-        <button class="quiet-button" id="importBtn" type="button">Import state</button>
+        <button class="quiet-button" id="importBtn" type="button">Restore backup</button>
         <input id="importFile" type="file" accept="application/json,.json" hidden>
         <p>Your work saves in this browser. Download a backup to move it to another device.</p>
       </div>
@@ -72,7 +72,7 @@
       </details>
       <div class="dialog-actions">
         <span></span>
-        <button class="primary-button" value="default" type="submit">Save objective</button>
+        <button class="primary-button" value="default" type="submit">Save goal</button>
       </div>
       <p class="form-note">The app keeps this goal fixed. It can only mark PASS after a real change and proof of both the starting and new states.</p>
     </form>
