@@ -1,0 +1,69 @@
+name: Test and publish Outcome Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "fable-enforce/**"
+      - ".claude/**"
+      - "CLAUDE.md"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Test canonical response filter
+        run: python fable-enforce/scripts/filter.py --test
+      - name: Test shadow runtime v4.2 objective gate
+        run: |
+          python fable-enforce/scripts/kernel_check.py --test
+          python fable-enforce/scripts/objective_gate.py --test
+          python -m unittest discover -s fable-enforce/scripts -p 'test_*.py' -v
+      - name: Generate browser signatures from canonical filter
+        run: python fable-enforce/scripts/export_signatures.py
+      - name: Check JavaScript syntax
+        run: node --check fable-enforce/web/app.js
+      - name: Check PWA inputs
+        run: |
+          test -s fable-enforce/web/index.html
+          test -s fable-enforce/web/styles.css
+          test -s fable-enforce/web/manifest.webmanifest
+          test -s fable-enforce/web/signatures.json
+          ! grep -R -E 'Read 12 books|sample objective|demo objective' fable-enforce/web
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: fable-enforce/web
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

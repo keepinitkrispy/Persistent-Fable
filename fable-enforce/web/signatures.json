@@ -1,0 +1,100 @@
+[
+  {
+    "sig_id": "SIG-1",
+    "name": "deferred_action",
+    "taxonomy": "constraint_dropout",
+    "patterns": [
+      "\\bI(?:'ll| will| am going to|\u2019ll)\\s+(?:be\\s+)?(?:remember|make sure|keep|check|track|watch|monitor|follow[ -]?up|circle back|get back|update|verify|hold|maintain|note|log|flag)\\b",
+      "\\bI(?:'ll| will|\u2019ll)\\s+(?:do|handle|take care of)\\s+(?:that|this|it)\\b",
+      "\\bfrom (?:now|here) on,?\\s+I\\b",
+      "\\bmoving forward,?\\s+I\\b",
+      "\\bgoing forward,?\\s+I\\b",
+      "\\bI(?:'ll| will|\u2019ll) (?:not|never) (?:do|let|make|allow)\\b",
+      "\\b(?:going forward|from now on|each time|every time),?\\s+I\\s+(?:run|check|verify|track|monitor|flag|log|report)\\b",
+      "\\bI\\s+(?:run|check|verify|track|monitor|flag|log|report)\\b.{0,40}\\b(?:every|each|all)\\s+(?:substantive|message|response|draft|time)\\b",
+      "\\bI\\s+(?:run|check|verify|track|monitor|flag|log|report)\\b.{0,40}\\b(?:going forward|from now on|this session|for the rest of)\\b"
+    ],
+    "suppressor_flag": null
+  },
+  {
+    "sig_id": "SIG-2",
+    "name": "unverified_time",
+    "taxonomy": "confident_fluency_over_verification",
+    "patterns": [
+      "\\b\\d{1,2}:\\d{2}\\s*(?:am|pm|AM|PM)?\\b",
+      "\\b\\d{1,2}\\s*(?:am|pm|AM|PM)\\b",
+      "\\b(?:about|around|roughly|approximately|~)\\s*(?:an?\\s+)?(?:\\d+\\s*)?(?:minutes?|mins?|hours?|hrs?)\\b",
+      "\\b\\d+\\s*(?:minutes?|mins?|hours?|hrs?)\\s+(?:left|out|to go|remaining|away)\\b",
+      "\\bit(?:'s|\u2019s| has| is) been\\s+(?:about\\s+|around\\s+|~\\s*)?\\d+\\s*(?:minutes?|hours?|days?)\\b",
+      "\\balmost\\s+(?:\\d{1,2}(?::\\d{2})?|midnight|noon)\\b",
+      "\\bnearly\\s+(?:\\d{1,2}(?::\\d{2})?|midnight|noon)\\b",
+      "\\bshould be (?:there|home|done) (?:by|around|at)\\s+\\d",
+      "~\\s*\\d+\\b",
+      "\\bin\\s+~?\\d+\\b(?!\\s*(?:dB|Hz|ms|%|k))",
+      "\\b(?:nearly|almost) (?:out of|done with|through) (?:the )?(?:night|shift|show)\\b"
+    ],
+    "suppressor_flag": "tool_time_called"
+  },
+  {
+    "sig_id": "SIG-3",
+    "name": "management",
+    "taxonomy": "reversion_under_context_pressure",
+    "patterns": [
+      "\\bhow are you (?:feeling|doing|holding up)\\b",
+      "\\bdid you (?:sleep|eat|drink|rest|shower)\\b",
+      "\\bhave you (?:slept|eaten|drunk|rested|showered)\\b",
+      "\\bmake sure (?:you|to)\\b",
+      "\\bdon'?t forget to\\b",
+      "\\bjust checking in\\b",
+      "\\bget some (?:rest|sleep|food)\\b",
+      "\\btake care of yourself\\b",
+      "\\byou should (?:eat|sleep|rest|hydrate|shower|drink some water|lie down)\\b",
+      "\\bremember to (?:eat|sleep|rest|hydrate|drink)\\b",
+      "\\bstay (?:hydrated|safe)\\b",
+      "\\bproud of you\\b",
+      "\\byou'?ve got this\\b"
+    ],
+    "suppressor_flag": "management_requested"
+  },
+  {
+    "sig_id": "SIG-4",
+    "name": "softening",
+    "taxonomy": "institutional_hedging",
+    "patterns": [
+      "\\bI hear you\\b",
+      "\\bthat'?s (?:completely |totally |so )?valid\\b",
+      "\\bit'?s (?:okay|ok|all right|alright) to (?:feel|be|not)\\b",
+      "\\bbe gentle with yourself\\b",
+      "\\bno judgm?ent\\b",
+      "\\bunderstandably\\b",
+      "\\bthat must (?:be|feel|have been)\\b",
+      "\\bI(?:'m|\u2019m| am) (?:so |really )?sorry (?:you|that you)(?:'re|\u2019re| are| had)\\b",
+      "\\bsafe space\\b",
+      "\\bgive yourself (?:grace|credit|permission)\\b"
+    ],
+    "suppressor_flag": null
+  },
+  {
+    "sig_id": "SIG-5",
+    "name": "confident_estimation",
+    "taxonomy": "confident_fluency_over_verification",
+    "patterns": [
+      "\\b(?:probably|likely|should be) (?:about|around|roughly)\\s+\\d",
+      "\\bI(?:'d|\u2019d| would) estimate\\b(?![^.]*\\[INFERENCE\\])",
+      "\\bmy guess is\\b(?![^.]*\\[INFERENCE\\])"
+    ],
+    "suppressor_flag": null
+  },
+  {
+    "sig_id": "SIG-6",
+    "name": "unlicensed_architecture_claim",
+    "taxonomy": "confident_fluency_over_verification",
+    "patterns": [
+      "\\bthere'?s? no mechanism (?:that|for|to)\\b.{0,40}\\b(?:forces?|binds?|compels?)\\b",
+      "\\bdon'?t compile into a (?:binding )?constraint\\b",
+      "\\bevery response is a fresh choice\\b",
+      "\\bI (?:can'?t|cannot|don'?t) (?:see|verify|inspect) (?:my own|this) (?:design|architecture|weights|training)\\b(?![^.]*\\[INFERENCE\\])"
+    ],
+    "suppressor_flag": null
+  }
+]

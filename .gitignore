@@ -1,0 +1,4 @@
+.fable/active_objective.json
+.fable/*.tmp
+__pycache__/
+*.py[cod]

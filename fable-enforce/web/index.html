@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="An outcome-gated execution harness. Work stays open until the objective changes and evidence verifies the target.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Outcome Gate</title>
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="#objective" aria-label="Outcome Gate home">Outcome Gate</a>
+    <div class="runtime"><span class="runtime-dot"></span>Shadow runtime v4.2</div>
+    <button class="quiet-button" id="exportBtn" type="button">Export state</button>
+  </header>
+
+  <main class="shell">
+    <nav class="rail" aria-label="Sections">
+      <button class="nav-item active" data-view="objective" type="button"><span>01</span> Objective</button>
+      <button class="nav-item" data-view="discover" type="button"><span>02</span> Discover</button>
+      <button class="nav-item" data-view="verify" type="button"><span>03</span> Verify</button>
+      <div class="rail-bottom">
+        <button class="quiet-button" id="importBtn" type="button">Import state</button>
+        <input id="importFile" type="file" accept="application/json,.json" hidden>
+        <p>State is saved in this browser. Export a snapshot to move it to another device.</p>
+      </div>
+    </nav>
+
+    <section class="workspace">
+      <div id="app" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <template id="emptyObjective">
+    <section class="empty-state">
+      <h1>Hold the objective fixed.</h1>
+      <p>Record the real-world state you want changed. A clean check or completed action is not a pass by itself.</p>
+      <button class="primary-button" id="newObjectiveBtn" type="button">Set an objective</button>
+    </section>
+  </template>
+
+  <dialog id="objectiveDialog">
+    <form method="dialog" id="objectiveForm" class="dialog-form">
+      <div class="dialog-heading">
+        <h2 id="objectiveDialogTitle">Set the objective</h2>
+        <button class="icon-button" value="cancel" aria-label="Close">×</button>
+      </div>
+      <label>Real-world result
+        <textarea name="statement" required rows="2" placeholder="Describe the end state that must become true"></textarea>
+      </label>
+      <div class="field-pair">
+        <label>Measured value now<input name="baseline" required placeholder="e.g. 0"></label>
+        <label>Unit or state label<input name="unit" placeholder="e.g. deployed, dollars, appointments"></label>
+      </div>
+      <div class="field-pair target-row">
+        <label>Target rule<select name="operator"><option value="eq">equals</option><option value="gte">at least</option><option value="lte">at most</option><option value="contains">contains</option></select></label>
+        <label>Target value<input name="target" required placeholder="e.g. 1"></label>
+      </div>
+      <label>Current blocker<textarea name="blocker" required rows="2" placeholder="What currently prevents the target state?"></textarea></label>
+      <label>Next executable transition<textarea name="nextAction" required rows="2" placeholder="An action that can change the measured state"></textarea></label>
+      <label>Baseline evidence link<input name="baselineEvidence" type="url" required placeholder="https://…"></label>
+      <label class="file-field">Baseline evidence artifact (required for PASS)<input name="baselineEvidenceFile" type="file" required accept="image/*,application/pdf,text/plain,.json"></label>
+      <label class="check-label"><input name="baselineSourceConfirmed" type="checkbox" required> I checked that this baseline source measures the objective above.</label>
+      <div class="dialog-actions">
+        <button class="quiet-button" value="cancel" type="button" id="cancelObjective">Cancel</button>
+        <button class="primary-button" value="default" type="submit">Freeze objective</button>
+      </div>
+      <p class="form-note">The target is frozen after creation. Changing it creates a new objective version; prior state history stays attached. Source checks are your attestations; this browser app cannot independently authenticate the real-world source.</p>
+    </form>
+  </dialog>
+
+  <dialog id="transitionDialog">
+    <form method="dialog" id="transitionForm" class="dialog-form">
+      <div class="dialog-heading">
+        <h2>Record an observed state change</h2>
+        <button class="icon-button" value="cancel" aria-label="Close">×</button>
+      </div>
+      <p class="form-note" id="transitionBefore"></p>
+      <label>New measured value<input name="after" required></label>
+      <label>Evidence link for the new state<input name="evidenceUrl" type="url" required placeholder="https://…"></label>
+      <label>What does this evidence show?<textarea name="evidenceNote" required rows="2"></textarea></label>
+      <label class="file-field">Evidence artifact (required for verification, computes SHA-256)<input name="evidenceFile" type="file" required accept="image/*,application/pdf,text/plain,.json"></label>
+      <label class="check-label"><input name="sourceConfirmed" type="checkbox" required> I checked that the evidence source measures the objective above.</label>
+      <div class="dialog-actions">
+        <button class="quiet-button" value="cancel" type="button" id="cancelTransition">Cancel</button>
+        <button class="primary-button" value="default" type="submit">Record observation</button>
+      </div>
+      <p class="form-note">A changed value is recorded as progress. PASS requires the frozen target to be met and both baseline and after evidence to be present.</p>
+    </form>
+  </dialog>
+
+  <dialog id="routeDialog">
+    <form method="dialog" id="routeForm" class="dialog-form">
+      <div class="dialog-heading">
+        <h2>Add a discovery route</h2>
+        <button class="icon-button" value="cancel" aria-label="Close">×</button>
+      </div>
+      <label>Foreign domain / mechanism<input name="domain" required placeholder="e.g. queueing theory, ecology, compiler optimization"></label>
+      <label>Native solution before mapping<input name="nativeSolution" required placeholder="What does this field do on its own terms?"></label>
+      <label>Mapping to the frozen objective state<input name="mapping" required placeholder="Which objective variable or transition does it map to?"></label>
+      <label>Which assumption does it attack?<input name="attacks" required></label>
+      <label>What variable could change reachability?<input name="variable" required></label>
+      <label>Executable discriminator plan<input name="discriminator" required placeholder="A runnable test with a result that can reject the route"></label>
+      <label>Result that rejects this route<input name="rejectsIf" required></label>
+      <label>Result that supports this route<input name="supportsIf" required></label>
+      <div class="dialog-actions">
+        <button class="quiet-button" value="cancel" type="button" id="cancelRoute">Cancel</button>
+        <button class="primary-button" value="default" type="submit">Add route</button>
+      </div>
+      <p class="form-note">Runtime v4.2 selects exactly two materially different routes per generation. After both fail to advance the target, the old generation locks until the blocker is reassessed.</p>
+    </form>
+  </dialog>
+
+  <dialog id="routeEvidenceDialog">
+    <form method="dialog" id="routeEvidenceForm" class="dialog-form">
+      <div class="dialog-heading"><h2>Record route execution evidence</h2><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <label>Evidence link<input name="url" type="url" required placeholder="https://…"></label>
+      <label>What did the evidence show?<textarea name="note" required rows="2"></textarea></label>
+      <label class="file-field">Execution evidence artifact<input name="file" type="file" required accept="image/*,application/pdf,text/plain,.json"></label>
+      <label class="check-label"><input name="sourceConfirmed" type="checkbox" required> I checked that this source measures the stated objective.</label>
+      <div class="dialog-actions"><button class="quiet-button" value="cancel" type="button" id="cancelRouteEvidence">Cancel</button><button class="primary-button" value="default" type="submit">Save execution record</button></div>
+      <p class="form-note">This records source attestation and an artifact hash; it does not independently authenticate the source.</p>
+    </form>
+  </dialog>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
