@@ -147,7 +147,7 @@ function renderObjective(obj) {
   const nextEvidence = lastOf(obj.observations)?.evidence;
   app.innerHTML = `
     <div class="page-heading">
-      <div><h1>Objective</h1><p class="subhead">The target is frozen. Only measured state transitions move this record forward.</p></div>
+      <div><h1>Your goal</h1><p class="subhead">The goal stays fixed. Only measured real-world changes move it forward.</p></div>
       <div class="heading-actions"><span class="status ${result.kind}">${escapeHtml(result.label)}</span><button class="primary-button" id="recordTransitionBtn" ${result.pass ? 'disabled' : ''} type="button">Record state change</button></div>
     </div>
     <section class="objective-panel">
@@ -200,7 +200,7 @@ function renderDiscover(obj) {
     ${route.evidence ? `<p class="form-note">Execution record: ${escapeHtml(route.evidence.note)} · <a href="${escapeHtml(safeUrl(route.evidence.url))}" target="_blank" rel="noopener">evidence link</a></p>` : ''}
   </article>`).join('');
   app.innerHTML = `
-    <div class="page-heading"><div><h1>Discover</h1><p class="subhead">Keep the end state fixed; change representations and mechanisms until a route changes reachability.</p></div><div class="heading-actions"><span class="status ${locked ? 'blocked' : 'open'}">${locked ? 'GENERATION LOCKED · REASSESS BLOCKER' : `GENERATION ${obj.generation} · ${currentRoutes.length}/5 fields · ${selectedCount}/2 routes`}</span><button class="primary-button" id="addRouteBtn" ${locked || currentRoutes.length >= 5 ? 'disabled' : ''} type="button">Add route</button></div></div>
+    <div class="page-heading"><div><h1>Explore</h1><p class="subhead">Keep the end state fixed; change representations and mechanisms until a route changes reachability.</p></div><div class="heading-actions"><span class="status ${locked ? 'blocked' : 'open'}">${locked ? 'GENERATION LOCKED · REASSESS BLOCKER' : `GENERATION ${obj.generation} · ${currentRoutes.length}/5 fields · ${selectedCount}/2 routes`}</span><button class="primary-button" id="addRouteBtn" ${locked || currentRoutes.length >= 5 ? 'disabled' : ''} type="button">Add route</button></div></div>
     <div class="objective-panel"><div><h2>${escapeHtml(obj.statement)}</h2><p class="section-copy">Current blocker: ${escapeHtml(obj.blocker)}</p></div><div class="rule-box"><strong>Runtime v4.2 gate</strong><p>Select exactly two materially different routes. If both execute without target advance, this generation expires. A new generation needs a blocker reassessment grounded in both results.</p></div></div>
     ${locked ? `<div class="generation-lock"><strong>Old route list is locked.</strong> Record the shared failure pattern and a revised blocker before opening a fresh generation.</div><div class="evidence-controls"><input id="reassessedBlocker" placeholder="Reassessed blocker based on both executed results"><input id="reassessmentEvidence" type="url" placeholder="HTTPS evidence link for the reassessment"><button class="primary-button" id="newGenerationBtn" type="button">Open fresh generation</button></div>` : ''}
     ${!locked ? `<label class="check-label"><input type="checkbox" id="divergenceOrderCheck" ${obj.searchStartedAfterDivergence ? 'checked' : ''} ${currentRoutes.length < 5 || selectedCount !== 2 ? 'disabled' : ''}> I registered five candidate fields and selected two distinct routes before starting solver/search work.</label>` : ''}
@@ -267,10 +267,10 @@ function buildPacket(obj) {
 
 function renderVerify(obj) {
   app.innerHTML = `
-    <div class="page-heading"><div><h1>Verify</h1><p class="subhead">Check a proposed response against the deterministic signature set and the objective-state gate.</p></div><span class="status ${outcome(obj).kind}">${escapeHtml(outcome(obj).label)}</span></div>
+    <div class="page-heading"><div><h1>Check result</h1><p class="subhead">Check a proposed response against the deterministic signature set and the objective-state gate.</p></div><span class="status ${outcome(obj).kind}">${escapeHtml(outcome(obj).label)}</span></div>
     <div class="verify-grid">
       <section class="verify-panel"><h2>Response scan</h2><p class="section-copy">Pattern matches are deterministic. A clean scan does not prove that the objective advanced.</p><textarea id="draftText" placeholder="Paste a proposed response to scan"></textarea><div class="evidence-controls"><label class="check-label"><input type="checkbox" id="timeToolFlag"> Time tool ran in this same response</label><label class="check-label"><input type="checkbox" id="managementFlag"> Management explicitly requested in this turn</label><button class="primary-button" id="scanBtn" type="button">Scan text</button></div><div id="scanResult" class="hit-list"></div></section>
-      <section class="verify-panel"><h2>Objective gate</h2><p class="section-copy">A process event alone can’t produce PASS. The record must show an actual measured transition to the frozen target.</p><div class="rule-box"><strong>Current test</strong><p>Before: ${escapeHtml(obj.baseline.value)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''}<br>After: ${escapeHtml(lastOf(obj.observations)?.value ?? obj.baseline.value)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''}<br>Target: ${escapeHtml(targetText(obj))}</p></div><div class="rule-box"><strong>Evidence state</strong><p>Baseline artifact: ${obj.baseline.evidence?.sha256 ? 'SHA-256 present' : 'missing'}<br>After artifact: ${lastOf(obj.observations)?.evidence?.sha256 ? 'SHA-256 present' : 'missing'}<br>Source checked by user: ${lastOf(obj.observations)?.sourceConfirmed ? 'yes' : 'no'}</p></div><button class="quiet-button" id="exportBtn2" type="button">Export objective record</button></section>
+      <section class="verify-panel"><h2>Real-world result check</h2><p class="section-copy">A process event alone can’t produce PASS. The record must show an actual measured transition to the frozen target.</p><div class="rule-box"><strong>Current test</strong><p>Before: ${escapeHtml(obj.baseline.value)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''}<br>After: ${escapeHtml(lastOf(obj.observations)?.value ?? obj.baseline.value)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''}<br>Target: ${escapeHtml(targetText(obj))}</p></div><div class="rule-box"><strong>Evidence state</strong><p>Baseline artifact: ${obj.baseline.evidence?.sha256 ? 'SHA-256 present' : 'missing'}<br>After artifact: ${lastOf(obj.observations)?.evidence?.sha256 ? 'SHA-256 present' : 'missing'}<br>Source checked by user: ${lastOf(obj.observations)?.sourceConfirmed ? 'yes' : 'no'}</p></div><button class="quiet-button" id="exportBtn2" type="button">Export objective record</button></section>
     </div>
     <section class="verify-panel kernel-panel"><h2>Decision kernel · K-1 to K-5</h2><p class="section-copy">Compare at least two real options. Use TOOL, MEMORY, STATED, INFERENCE, or UNKNOWN for each evidence license. UNKNOWN has zero weight; totals must equal licensed evidence. Include continuation and delay. If asserting a boundary, name its blocker and evaluated routes. Mark conclusions for recomputation when their premises are superseded.</p><textarea id="decisionTrace" aria-label="Decision trace JSON" placeholder='{"decision":"...","options":[{"id":"...","incumbent":false,"evidence":[{"claim":"...","license":"STATED","weight":0,"premise":"..."}],"total_weight":0},{"id":"...","incumbent":true,"evidence":[],"total_weight":0}],"baseline_rows":["continuation","delay"],"boundary":null,"superseded_premises":[]}>${obj.decisionTrace ? escapeHtml(JSON.stringify(obj.decisionTrace, null, 2)) : ''}</textarea><div class="evidence-controls"><button class="primary-button" id="saveDecisionTrace" type="button">Validate and save trace</button><span class="form-note">A valid trace is required before PASS. The check validates structure; it cannot prove an evidence license is truthful.</span></div><div id="kernelResult" class="hit-list"></div></section>`;
   document.querySelector('#scanBtn').addEventListener('click', () => {
@@ -338,7 +338,7 @@ function scanText(text, flags) {
 
 function openObjectiveDialog() {
   document.querySelector('#objectiveForm').reset();
-  document.querySelector('#objectiveDialogTitle').textContent = 'Set an objective';
+  document.querySelector('#objectiveDialogTitle').textContent = 'Set your goal';
   objectiveDialog.showModal();
 }
 
@@ -393,7 +393,7 @@ document.querySelector('#objectiveForm').addEventListener('submit', (event) => {
   };
   state.objectives.push(obj);
   state.activeId = obj.id;
-  persist(); objectiveDialog.close(); activeView = 'objective'; render(); toast('Objective saved. Add starting proof from the Objective screen.');
+  persist(); objectiveDialog.close(); activeView = 'objective'; render(); toast('Goal saved. Next, add proof of the starting state.');
 });
 
 document.querySelector('#baselineEvidenceForm').addEventListener('submit', async (event) => {
@@ -502,7 +502,7 @@ function exportState() {
   const link = document.createElement('a');
   link.href = url; link.download = `outcome-gate-${new Date().toISOString().slice(0, 10)}.json`; link.click();
   URL.revokeObjectURL(url);
-  toast('State snapshot downloaded.');
+  toast('Backup downloaded.');
 }
 
 async function importState(event) {
@@ -514,7 +514,7 @@ async function importState(event) {
     if (imported.schemaVersion !== 1 || !Array.isArray(imported.objectives)) throw new Error('Unsupported state file.');
     state.schemaVersion = 1; state.runtime = { name: 'shadow', version: '4.2' };
     state.objectives = imported.objectives; state.activeId = imported.activeId || lastOf(imported.objectives)?.id || null;
-    persist(); activeView = 'objective'; render(); toast('State snapshot imported.');
+    persist(); activeView = 'objective'; render(); toast('Backup restored.');
   } catch (error) { toast(`Import failed: ${error.message}`); }
   event.currentTarget.value = '';
 }
