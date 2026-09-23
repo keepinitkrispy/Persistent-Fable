@@ -1,4 +1,4 @@
-const CACHE = 'outcome-gate-v2';
+const CACHE = 'outcome-gate-v3';
 const SHELL = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './signatures.json', './icon.svg'];
 
 self.addEventListener('install', (event) => {
