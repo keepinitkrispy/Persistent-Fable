@@ -189,8 +189,16 @@ function renderObjective(obj) {
     </section>
     <section class="section">
       <div class="sync-card">
-        <div><h2>Use this goal on your Pixel</h2><p>GitHub opens a ready-to-send private request. Tap <strong>Create issue</strong>; SolBridge will copy this saved goal to your phone. No token to copy.</p></div>
-        <button class="primary-button" id="sendToPixelBtn" type="button">Send goal to Pixel</button>
+        <div>
+          <h2>Send this goal to your Pixel</h2>
+          <p>1. Tap <strong>Open GitHub request</strong>. A private request form opens in a new tab; sign in if GitHub asks.</p>
+          <p>2. On GitHub, tap <strong>Create issue</strong>. Until you do, nothing is sent to the phone.</p>
+          <p>3. Check the request below for SolBridge’s saved or failed result.</p>
+          <p><a class="timeline-link" href="https://github.com/keepinitkrispy/solbridge-bus/issues?q=is%3Aissue+label%3Asolbridge-command+sort%3Aupdated-desc" target="_blank" rel="noopener">Open phone requests and results</a></p>
+          <p class="form-note" id="syncStatus" role="status">No phone request has been opened from this screen.</p>
+          <p class="form-note">No token to copy. This free static page cannot read private GitHub results directly.</p>
+        </div>
+        <button class="primary-button" id="sendToPixelBtn" type="button">Open GitHub request</button>
       </div>
     </section>
     <section class="section">
@@ -207,8 +215,17 @@ function renderObjective(obj) {
   document.querySelector('#recordTransitionBtn')?.addEventListener('click', () => openTransitionDialog(obj));
   document.querySelector('#addBaselineEvidenceBtn')?.addEventListener('click', openBaselineEvidenceDialog);
   document.querySelector('#sendToPixelBtn')?.addEventListener('click', () => {
-    try { window.location.assign(solbridgeIssueUrl()); }
-    catch (error) { toast(error.message); }
+    try {
+      const link = document.createElement('a');
+      link.href = solbridgeIssueUrl();
+      link.target = '_blank';
+      link.rel = 'noopener';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      document.querySelector('#syncStatus').textContent =
+        'GitHub request form opened. Tap Create issue there; the phone has not received the goal yet.';
+    } catch (error) { toast(error.message); }
   });
 }
 
