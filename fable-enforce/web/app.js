@@ -5,7 +5,43 @@ const transitionDialog = document.querySelector('#transitionDialog');
 const routeDialog = document.querySelector('#routeDialog');
 const routeEvidenceDialog = document.querySelector('#routeEvidenceDialog');
 const baselineEvidenceDialog = document.querySelector('#baselineEvidenceDialog');
-const state = loadState();
+const state = loadBridgeState(loadState());
+if (state.bridgeReceipt?.receivedAt) persist();
+
+function loadBridgeState(existing) {
+  const marker = '#bridge-state=';
+  if (!location.hash.startsWith(marker)) return existing;
+  const encoded = location.hash.slice(marker.length);
+  try {
+    if (!encoded || encoded.length > 12000) throw new Error('Invalid receipt size');
+    const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+    const binary = atob(base64 + '='.repeat((4 - base64.length % 4) % 4));
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    const receipt = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    const imported = receipt?.state;
+    if (receipt.schema !== 'outcome-gate-phone-receipt/v1' || receipt.status !== 'ok' ||
+        receipt.tool !== 'write_text' || receipt.path !== 'objectives/active.json' ||
+        receipt.readback_verified !== true || !Number.isInteger(receipt.issue_number) ||
+        !Array.isArray(imported?.objectives) || imported.schemaVersion !== 1 ||
+        !imported.objectives.some((item) => item && item.id === imported.activeId)) {
+      throw new Error('Receipt did not pass the phone-save checks');
+    }
+    const accepted = { ...imported, bridgeReceipt: {
+      device_id: String(receipt.device_id || ''),
+      command_id: String(receipt.command_id || ''),
+      issue_number: receipt.issue_number,
+      path: receipt.path,
+      bytes: Number.isFinite(receipt.bytes) ? receipt.bytes : null,
+      receivedAt: new Date().toISOString(),
+    } };
+    history.replaceState(null, '', location.pathname + location.search);
+    return accepted;
+  } catch (error) {
+    console.warn('Phone receipt was not imported', error);
+    history.replaceState(null, '', location.pathname + location.search);
+    return existing;
+  }
+}
 let activeView = 'objective';
 let signatures = [];
 let pendingRouteResult = null;
@@ -187,16 +223,17 @@ function renderObjective(obj) {
         <div class="rule-box"><strong>Pass rule · shadow v4.2</strong><p>PASS requires a changed measured value, the frozen target condition, and before/after evidence. The artifact hashes establish which files were supplied; they do not certify that a source is truthful.</p></div>
       </div>
     </section>
+    ${state.bridgeReceipt ? `<section class="section"><div class="alert-box"><strong>Pixel save confirmed · read-back matched</strong><p>SolBridge wrote and read back <code>${escapeHtml(state.bridgeReceipt.path)}</code> on ${escapeHtml(state.bridgeReceipt.device_id || 'your phone')}. This browser loaded that phone copy. This confirms the file handoff, not that the real-world objective is complete.</p><p><a class="timeline-link" href="https://github.com/keepinitkrispy/solbridge-bus/issues/${Number(state.bridgeReceipt.issue_number)}" target="_blank" rel="noopener">View private phone result</a></p></div></section>` : ''}
     <section class="section">
       <div class="sync-card">
         <div>
           <h2>Send this goal to your Pixel</h2>
           <p>1. Tap <strong>Open GitHub request</strong>. A private request form opens in a new tab; sign in if GitHub asks.</p>
           <p>2. On GitHub, tap <strong>Create issue</strong>. Until you do, nothing is sent to the phone.</p>
-          <p>3. Check the request below for SolBridge’s saved or failed result.</p>
+          <p>3. When the issue says it is done, open its comment and tap <strong>Open the saved goal in Outcome Gate</strong>. This screen imports the phone read-back.</p>
           <p><a class="timeline-link" href="https://github.com/keepinitkrispy/solbridge-bus/issues?q=is%3Aissue+label%3Asolbridge-command+sort%3Aupdated-desc" target="_blank" rel="noopener">Open phone requests and results</a></p>
           <p class="form-note" id="syncStatus" role="status">No phone request has been opened from this screen.</p>
-          <p class="form-note">No token to copy. This free static page cannot read private GitHub results directly.</p>
+          <p class="form-note">Nothing to copy. Your phone returns its saved file through the private GitHub result.</p>
         </div>
         <button class="primary-button" id="sendToPixelBtn" type="button">Open GitHub request</button>
       </div>
@@ -572,5 +609,5 @@ function toast(message) {
   document.body.append(node); setTimeout(() => node.remove(), 3000);
 }
 
-loadSignatures().then(render);
+loadSignatures().then(() => { render(); if (state.bridgeReceipt?.receivedAt) toast('Phone-saved goal loaded.'); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch((error) => console.warn('Offline shell unavailable', error));
