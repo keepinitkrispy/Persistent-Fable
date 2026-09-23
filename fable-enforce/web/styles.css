@@ -173,6 +173,12 @@ dialog::backdrop { background: #15223855; }
 .objective-options summary { color: var(--blue); cursor: pointer; font-size: 13px; font-weight: 650; }
 .objective-options[open] { display: flex; flex-direction: column; gap: 12px; }
 .objective-options label { margin-top: 2px; }
+.sync-card { display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid #cbd8ee; border-radius: 9px; background: #f5f8ff; padding: 18px 20px; }
+.sync-card h2 { font-size: 18px; }
+.sync-card p { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; max-width: 650px; }
+.sync-card .primary-button { flex: 0 0 auto; }
+@media (max-width: 760px) { .sync-card { align-items: stretch; flex-direction: column; padding: 16px; } .sync-card .primary-button { width: 100%; } }
+
 .timeline-pending { color: var(--muted); font-size: 12px; }
 .evidence-missing { border-color: #e2c77c; background: #fffaf0; }
 .evidence-missing button { flex: 0 0 auto; }
