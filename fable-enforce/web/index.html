@@ -44,30 +44,80 @@
   <dialog id="objectiveDialog">
     <form method="dialog" id="objectiveForm" class="dialog-form">
       <div class="dialog-heading">
-        <h2 id="objectiveDialogTitle">Set the objective</h2>
+        <h2 id="objectiveDialogTitle">Set your objective</h2>
         <button class="icon-button" value="cancel" aria-label="Close">×</button>
       </div>
-      <label>Real-world result
-        <textarea name="statement" required rows="2" placeholder="Describe the end state that must become true"></textarea>
-      </label>
-      <div class="field-pair">
-        <label>Measured value now<input name="baseline" required placeholder="e.g. 0"></label>
-        <label>Unit or state label<input name="unit" placeholder="e.g. deployed, dollars, appointments"></label>
-      </div>
-      <div class="field-pair target-row">
-        <label>Target rule<select name="operator"><option value="eq">equals</option><option value="gte">at least</option><option value="lte">at most</option><option value="contains">contains</option></select></label>
-        <label>Target value<input name="target" required placeholder="e.g. 1"></label>
-      </div>
-      <label>Current blocker<textarea name="blocker" required rows="2" placeholder="What currently prevents the target state?"></textarea></label>
-      <label>Next executable transition<textarea name="nextAction" required rows="2" placeholder="An action that can change the measured state"></textarea></label>
-      <label>Baseline evidence link<input name="baselineEvidence" type="url" required placeholder="https://…"></label>
-      <label class="file-field">Baseline evidence artifact (required for PASS)<input name="baselineEvidenceFile" type="file" required accept="image/*,application/pdf,text/plain,.json"></label>
-      <label class="check-label"><input name="baselineSourceConfirmed" type="checkbox" required> I checked that this baseline source measures the objective above.</label>
-      <div class="dialog-actions">
-        <button class="quiet-button" value="cancel" type="button" id="cancelObjective">Cancel</button>
-        <button class="primary-button" value="default" type="submit">Freeze objective</button>
-      </div>
-      <p class="form-note">The target is frozen after creation. Changing it creates a new objective version; prior state history stays attached. Source checks are your attestations; this browser app cannot independently authenticate the real-world source.</p>
+      <p class="wizard-lead">Three short steps. The app only marks this complete after the real-world state changes and the evidence shows it.</p>
+      <ol class="wizard-progress" aria-label="Objective setup steps">
+        <li data-wizard-indicator="1" aria-current="step"><span>1</span> Outcome</li>
+        <li data-wizard-indicator="2"><span>2</span> Plan</li>
+        <li data-wizard-indicator="3"><span>3</span> Starting proof</li>
+      </ol>
+
+      <section class="objective-step" data-objective-step="1" aria-labelledby="objectiveStep1">
+        <div class="wizard-step-heading"><span>STEP 1 OF 3</span><h3 id="objectiveStep1">Define the result</h3><p>Describe what must become true, then record where it stands now and what “done” means.</p></div>
+        <label>What should change in the real world?
+          <textarea name="statement" data-wizard-required required rows="2" placeholder="Example: The harness opens on my phone and MacBook."></textarea>
+        </label>
+        <div class="field-pair">
+          <label>What is true now?
+            <input name="baseline" data-wizard-required required placeholder="Example: Not published">
+          </label>
+          <label>Unit (optional)
+            <input name="unit" placeholder="Example: status, dollars, appointments">
+          </label>
+        </div>
+        <div class="field-pair">
+          <label>Target rule
+            <select name="operator" data-wizard-required required>
+              <option value="eq">Match exactly</option>
+              <option value="gte">Reach at least</option>
+              <option value="lte">Stay at or below</option>
+              <option value="contains">Include this text</option>
+            </select>
+          </label>
+          <label>What should it become?
+            <input name="target" data-wizard-required required placeholder="Example: Published">
+          </label>
+        </div>
+        <div class="wizard-example"><strong>Example</strong><span>Current: “Not published” → Target: “Published”</span></div>
+        <div class="wizard-actions">
+          <span></span>
+          <button class="primary-button" data-wizard-next="2" type="button">Next: plan</button>
+        </div>
+      </section>
+
+      <section class="objective-step" data-objective-step="2" aria-labelledby="objectiveStep2" hidden>
+        <div class="wizard-step-heading"><span>STEP 2 OF 3</span><h3 id="objectiveStep2">Name the next move</h3><p>This keeps the work pointed at the real blocker. If you do not know yet, say so; discovery can find it.</p></div>
+        <label>What is stopping the result right now?
+          <textarea name="blocker" data-wizard-required required rows="3" placeholder="Example: The Pages site has not been published. Or: I don’t know yet."></textarea>
+        </label>
+        <label>What is the next real-world action?
+          <textarea name="nextAction" data-wizard-required required rows="3" placeholder="Example: Open the published site on my phone and confirm it loads."></textarea>
+        </label>
+        <div class="wizard-actions">
+          <button class="quiet-button" data-wizard-back type="button">Back</button>
+          <button class="primary-button" data-wizard-next="3" type="button">Next: starting proof</button>
+        </div>
+      </section>
+
+      <section class="objective-step" data-objective-step="3" aria-labelledby="objectiveStep3" hidden>
+        <div class="wizard-step-heading"><span>STEP 3 OF 3</span><h3 id="objectiveStep3">Show the starting point</h3><p>Save proof of the current state. Later, the app compares it with evidence of the changed state.</p></div>
+        <label>Link to the current-state source
+          <input name="baselineEvidence" type="url" data-wizard-required required placeholder="https://…">
+          <span class="field-help">Use the page, record, or other source you checked.</span>
+        </label>
+        <label class="file-field">Attach current-state proof
+          <input name="baselineEvidenceFile" type="file" data-wizard-required required accept="image/*,application/pdf,text/plain,.json">
+          <span class="field-help">A screenshot, photo, PDF, or JSON file works.</span>
+        </label>
+        <label class="check-label"><input name="baselineSourceConfirmed" data-wizard-required type="checkbox" required> I checked that this source shows the current value above.</label>
+        <div class="wizard-actions">
+          <button class="quiet-button" data-wizard-back type="button">Back</button>
+          <button class="primary-button" value="default" type="submit">Save objective</button>
+        </div>
+        <p class="form-note">The objective is saved in this browser. To keep the target unchanged, later edits create a new version and preserve its history.</p>
+      </section>
     </form>
   </dialog>
 
