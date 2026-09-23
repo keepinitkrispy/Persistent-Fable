@@ -334,9 +334,30 @@ function scanText(text, flags) {
   return hits;
 }
 
+let objectiveWizardStep = 1;
+
+function showObjectiveStep(step) {
+  objectiveWizardStep = Math.max(1, Math.min(3, Number(step) || 1));
+  document.querySelectorAll('[data-objective-step]').forEach((panel) => {
+    const active = Number(panel.dataset.objectiveStep) === objectiveWizardStep;
+    panel.hidden = !active;
+    panel.querySelectorAll('[data-wizard-required]').forEach((field) => { field.required = active; });
+  });
+  document.querySelectorAll('[data-wizard-indicator]').forEach((item) => {
+    const number = Number(item.dataset.wizardIndicator);
+    item.classList.toggle('is-current', number === objectiveWizardStep);
+    item.classList.toggle('is-complete', number < objectiveWizardStep);
+    if (number === objectiveWizardStep) item.setAttribute('aria-current', 'step');
+    else item.removeAttribute('aria-current');
+  });
+  document.querySelectorAll('[data-wizard-back]').forEach((button) => { button.hidden = objectiveWizardStep === 1; });
+  objectiveDialog.scrollTop = 0;
+}
+
 function openObjectiveDialog() {
   document.querySelector('#objectiveForm').reset();
-  document.querySelector('#objectiveDialogTitle').textContent = 'Set the objective';
+  document.querySelector('#objectiveDialogTitle').textContent = 'Set your objective';
+  showObjectiveStep(1);
   objectiveDialog.showModal();
 }
 
@@ -362,6 +383,14 @@ document.querySelector('#importBtn').addEventListener('click', () => document.qu
 document.querySelector('#importFile').addEventListener('change', importState);
 document.querySelector('#exportBtn').addEventListener('click', exportState);
 document.querySelector('#cancelObjective').addEventListener('click', () => objectiveDialog.close());
+document.querySelectorAll('[data-wizard-next]').forEach((button) => button.addEventListener('click', () => {
+  const form = document.querySelector('#objectiveForm');
+  if (!form.reportValidity()) return;
+  showObjectiveStep(button.dataset.wizardNext);
+}));
+document.querySelectorAll('[data-wizard-back]').forEach((button) => button.addEventListener('click', () => {
+  showObjectiveStep(objectiveWizardStep - 1);
+}));
 document.querySelector('#cancelTransition').addEventListener('click', () => transitionDialog.close());
 document.querySelector('#cancelRoute').addEventListener('click', () => routeDialog.close());
 document.querySelector('#cancelRouteEvidence').addEventListener('click', () => { pendingRouteResult = null; routeEvidenceDialog.close(); });
