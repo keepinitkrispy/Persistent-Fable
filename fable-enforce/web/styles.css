@@ -149,6 +149,24 @@ dialog::backdrop { background: #15223855; }
   .section-header { align-items: flex-start; }
   .dialog-form { padding: 19px; }
 }
+
+.wizard-lead { margin: -2px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.wizard-progress { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0; margin: 0 0 2px; }
+.wizard-progress li { display: flex; align-items: center; gap: 7px; min-width: 0; color: var(--muted); font-size: 11px; font-weight: 600; }
+.wizard-progress li span { display: inline-grid; place-items: center; width: 23px; height: 23px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 50%; font-size: 11px; }
+.wizard-progress li.is-current { color: var(--blue); }
+.wizard-progress li.is-current span { color: white; background: var(--blue); border-color: var(--blue); }
+.wizard-progress li.is-complete span { color: var(--green); border-color: var(--green); }
+.objective-step[hidden] { display: none; }
+.wizard-step-heading { margin: 3px 0 2px; }
+.wizard-step-heading > span { color: var(--blue); font-size: 10px; letter-spacing: .08em; font-weight: 750; }
+.wizard-step-heading h3 { margin-top: 4px; font-size: 19px; }
+.wizard-step-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.wizard-example { display: flex; flex-direction: column; gap: 3px; border-left: 3px solid #8aa9ed; background: #f4f7fd; padding: 9px 11px; font-size: 12px; line-height: 1.45; }
+.wizard-example strong { color: #355b9f; font-size: 11px; }
+.wizard-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 3px; }
+.field-help { color: var(--muted); font-size: 11px; font-weight: 450; line-height: 1.4; }
+@media (max-width: 760px) { .field-pair { grid-template-columns: 1fr; } .wizard-progress { gap: 4px; } .wizard-progress li { gap: 4px; font-size: 10px; } .wizard-progress li span { width: 21px; height: 21px; } }
 @media (prefers-reduced-motion: no-preference) {
   button { transition: background-color .12s ease, border-color .12s ease; }
 }
