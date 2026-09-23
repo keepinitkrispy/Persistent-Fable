@@ -18,13 +18,13 @@
 
   <main class="shell">
     <nav class="rail" aria-label="Sections">
-      <button class="nav-item active" data-view="objective" type="button"><span>01</span> Objective</button>
-      <button class="nav-item" data-view="discover" type="button"><span>02</span> Discover</button>
-      <button class="nav-item" data-view="verify" type="button"><span>03</span> Verify</button>
+      <button class="nav-item active" data-view="objective" type="button"><span>01</span> Goal</button>
+      <button class="nav-item" data-view="discover" type="button"><span>02</span> Explore</button>
+      <button class="nav-item" data-view="verify" type="button"><span>03</span> Check result</button>
       <div class="rail-bottom">
         <button class="quiet-button" id="importBtn" type="button">Import state</button>
         <input id="importFile" type="file" accept="application/json,.json" hidden>
-        <p>State is saved in this browser. Export a snapshot to move it to another device.</p>
+        <p>Your work saves in this browser. Download a backup to move it to another device.</p>
       </div>
     </nav>
 
@@ -35,27 +35,27 @@
 
   <template id="emptyObjective">
     <section class="empty-state">
-      <h1>Hold the objective fixed.</h1>
-      <p>Record the real-world state you want changed. A clean check or completed action is not a pass by itself.</p>
-      <button class="primary-button" id="newObjectiveBtn" type="button">Set an objective</button>
+      <h1>What do you want to get done?</h1>
+      <p>Describe the result you want. The app keeps that goal fixed and only counts a verified real-world change.</p>
+      <button class="primary-button" id="newObjectiveBtn" type="button">Set my goal</button>
     </section>
   </template>
 
   <dialog id="objectiveDialog">
     <form method="dialog" id="objectiveForm" class="dialog-form">
       <div class="dialog-heading">
-        <h2 id="objectiveDialogTitle">Set an objective</h2>
+        <h2 id="objectiveDialogTitle">Set your goal</h2>
         <button class="icon-button" id="cancelObjective" type="button" aria-label="Close">×</button>
       </div>
-      <p class="setup-intro">Start with three things: the result you want, what is true now, and what “done” means. You can add proof after saving.</p>
-      <label>What do you want to change in the real world?
-        <textarea name="statement" required rows="2" placeholder="Example: The Outcome Gate opens on my phone and MacBook."></textarea>
-        <span class="field-help">Describe the result, not the steps.</span>
+      <p class="setup-intro">Three short answers: what you want, what is happening now, and what should be true when it works.</p>
+      <label>What do you want to get done?
+        <textarea name="statement" required rows="2" placeholder="Example: Make the harness work on my phone and MacBook."></textarea>
+        <span class="field-help">Say what should be different when you’re done.</span>
       </label>
-      <label>What is true right now?
+      <label>What is happening now?
         <input name="baseline" required placeholder="Example: It has not opened on either device.">
       </label>
-      <label>What will count as done?
+      <label>What should be true when it’s done?
         <input name="target" required placeholder="Example: It opens on both devices.">
       </label>
       <details class="objective-options">
@@ -74,7 +74,7 @@
         <span></span>
         <button class="primary-button" value="default" type="submit">Save objective</button>
       </div>
-      <p class="form-note">The target stays fixed after saving. Starting proof can be attached on the next screen; the objective cannot pass without proof of both the starting and changed states.</p>
+      <p class="form-note">The app keeps this goal fixed. It can only mark PASS after a real change and proof of both the starting and new states.</p>
     </form>
   </dialog>
   <dialog id="baselineEvidenceDialog">
