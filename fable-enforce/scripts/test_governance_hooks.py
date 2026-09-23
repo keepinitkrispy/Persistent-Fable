@@ -127,6 +127,20 @@ class HookTests(unittest.TestCase):
         receipt = json.loads((self.folder / 'receipts.jsonl').read_text().splitlines()[-1])
         self.assertEqual(receipt['status'], 'user_stopped')
 
+    def test_missing_dependency_blocks(self):
+        self.trace()
+        (self.root / 'fable-enforce/scripts/kernel_check.py').unlink()
+        self.assertEqual(self.stop()['decision'], 'block')
+
+    def test_missing_hook_entrypoint_returns_blocking_exit(self):
+        (self.root / 'fable-enforce/scripts/stop_guard.py').unlink()
+        command = self.settings['hooks']['Stop'][0]['hooks'][0]['command']
+        result = subprocess.run(command, shell=True, cwd=self.root,
+            env={**os.environ, 'CLAUDE_PROJECT_DIR': str(self.root)},
+            input='{}', text=True, capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('checks did not pass', result.stderr)
+
     def test_another_session_cannot_reuse_record(self):
         self.trace()
         self.session = 'other-session'
