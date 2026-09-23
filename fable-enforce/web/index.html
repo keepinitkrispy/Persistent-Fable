@@ -44,80 +44,59 @@
   <dialog id="objectiveDialog">
     <form method="dialog" id="objectiveForm" class="dialog-form">
       <div class="dialog-heading">
-        <h2 id="objectiveDialogTitle">Set your objective</h2>
-        <button class="icon-button" value="cancel" aria-label="Close">×</button>
+        <h2 id="objectiveDialogTitle">Set an objective</h2>
+        <button class="icon-button" id="cancelObjective" type="button" aria-label="Close">×</button>
       </div>
-      <p class="wizard-lead">Three short steps. The app only marks this complete after the real-world state changes and the evidence shows it.</p>
-      <ol class="wizard-progress" aria-label="Objective setup steps">
-        <li data-wizard-indicator="1" aria-current="step"><span>1</span> Outcome</li>
-        <li data-wizard-indicator="2"><span>2</span> Plan</li>
-        <li data-wizard-indicator="3"><span>3</span> Starting proof</li>
-      </ol>
-
-      <section class="objective-step" data-objective-step="1" aria-labelledby="objectiveStep1">
-        <div class="wizard-step-heading"><span>STEP 1 OF 3</span><h3 id="objectiveStep1">Define the result</h3><p>Describe what must become true, then record where it stands now and what “done” means.</p></div>
-        <label>What should change in the real world?
-          <textarea name="statement" data-wizard-required required rows="2" placeholder="Example: The harness opens on my phone and MacBook."></textarea>
+      <p class="setup-intro">Start with three things: the result you want, what is true now, and what “done” means. You can add proof after saving.</p>
+      <label>What do you want to change in the real world?
+        <textarea name="statement" required rows="2" placeholder="Example: The Outcome Gate opens on my phone and MacBook."></textarea>
+        <span class="field-help">Describe the result, not the steps.</span>
+      </label>
+      <label>What is true right now?
+        <input name="baseline" required placeholder="Example: It has not opened on either device.">
+      </label>
+      <label>What will count as done?
+        <input name="target" required placeholder="Example: It opens on both devices.">
+      </label>
+      <details class="objective-options">
+        <summary>More options for number targets or units</summary>
+        <label>How should the target compare?
+          <select name="operator">
+            <option value="eq">Match exactly</option>
+            <option value="gte">Reach at least</option>
+            <option value="lte">Stay at or below</option>
+            <option value="contains">Include this text</option>
+          </select>
         </label>
-        <div class="field-pair">
-          <label>What is true now?
-            <input name="baseline" data-wizard-required required placeholder="Example: Not published">
-          </label>
-          <label>Unit (optional)
-            <input name="unit" placeholder="Example: status, dollars, appointments">
-          </label>
-        </div>
-        <div class="field-pair">
-          <label>Target rule
-            <select name="operator" data-wizard-required required>
-              <option value="eq">Match exactly</option>
-              <option value="gte">Reach at least</option>
-              <option value="lte">Stay at or below</option>
-              <option value="contains">Include this text</option>
-            </select>
-          </label>
-          <label>What should it become?
-            <input name="target" data-wizard-required required placeholder="Example: Published">
-          </label>
-        </div>
-        <div class="wizard-example"><strong>Example</strong><span>Current: “Not published” → Target: “Published”</span></div>
-        <div class="wizard-actions">
-          <span></span>
-          <button class="primary-button" data-wizard-next="2" type="button">Next: plan</button>
-        </div>
-      </section>
-
-      <section class="objective-step" data-objective-step="2" aria-labelledby="objectiveStep2" hidden>
-        <div class="wizard-step-heading"><span>STEP 2 OF 3</span><h3 id="objectiveStep2">Name the next move</h3><p>This keeps the work pointed at the real blocker. If you do not know yet, say so; discovery can find it.</p></div>
-        <label>What is stopping the result right now?
-          <textarea name="blocker" data-wizard-required required rows="3" placeholder="Example: The Pages site has not been published. Or: I don’t know yet."></textarea>
-        </label>
-        <label>What is the next real-world action?
-          <textarea name="nextAction" data-wizard-required required rows="3" placeholder="Example: Open the published site on my phone and confirm it loads."></textarea>
-        </label>
-        <div class="wizard-actions">
-          <button class="quiet-button" data-wizard-back type="button">Back</button>
-          <button class="primary-button" data-wizard-next="3" type="button">Next: starting proof</button>
-        </div>
-      </section>
-
-      <section class="objective-step" data-objective-step="3" aria-labelledby="objectiveStep3" hidden>
-        <div class="wizard-step-heading"><span>STEP 3 OF 3</span><h3 id="objectiveStep3">Show the starting point</h3><p>Save proof of the current state. Later, the app compares it with evidence of the changed state.</p></div>
-        <label>Link to the current-state source
-          <input name="baselineEvidence" type="url" data-wizard-required required placeholder="https://…">
-          <span class="field-help">Use the page, record, or other source you checked.</span>
-        </label>
-        <label class="file-field">Attach current-state proof
-          <input name="baselineEvidenceFile" type="file" data-wizard-required required accept="image/*,application/pdf,text/plain,.json">
-          <span class="field-help">A screenshot, photo, PDF, or JSON file works.</span>
-        </label>
-        <label class="check-label"><input name="baselineSourceConfirmed" data-wizard-required type="checkbox" required> I checked that this source shows the current value above.</label>
-        <div class="wizard-actions">
-          <button class="quiet-button" data-wizard-back type="button">Back</button>
-          <button class="primary-button" value="default" type="submit">Save objective</button>
-        </div>
-        <p class="form-note">The objective is saved in this browser. To keep the target unchanged, later edits create a new version and preserve its history.</p>
-      </section>
+        <label>Unit (optional)<input name="unit" placeholder="Examples: dollars, appointments, percent"></label>
+      </details>
+      <div class="dialog-actions">
+        <span></span>
+        <button class="primary-button" value="default" type="submit">Save objective</button>
+      </div>
+      <p class="form-note">The target stays fixed after saving. Starting proof can be attached on the next screen; the objective cannot pass without proof of both the starting and changed states.</p>
+    </form>
+  </dialog>
+  <dialog id="baselineEvidenceDialog">
+    <form method="dialog" id="baselineEvidenceForm" class="dialog-form">
+      <div class="dialog-heading">
+        <h2>Add starting proof</h2>
+        <button class="icon-button" id="cancelBaselineEvidence" type="button" aria-label="Close">×</button>
+      </div>
+      <p class="setup-intro">Link and attach evidence showing the starting value you recorded.</p>
+      <label>Where can we check the starting value?
+        <input name="baselineEvidence" type="url" required placeholder="https://…">
+      </label>
+      <label class="file-field">Attach proof of the starting value
+        <input name="baselineEvidenceFile" type="file" required accept="image/*,application/pdf,text/plain,.json">
+        <span class="field-help">A screenshot, photo, PDF, or JSON file works.</span>
+      </label>
+      <label class="check-label"><input name="baselineSourceConfirmed" type="checkbox" required> I checked that this link and file show the current value.</label>
+      <div class="dialog-actions">
+        <button class="quiet-button" id="cancelBaselineEvidence2" type="button">Cancel</button>
+        <button class="primary-button" value="default" type="submit">Save starting proof</button>
+      </div>
+      <p class="form-note">The file hash records which file you attached; it does not independently verify the source.</p>
     </form>
   </dialog>
 
