@@ -4,6 +4,7 @@ const objectiveDialog = document.querySelector('#objectiveDialog');
 const transitionDialog = document.querySelector('#transitionDialog');
 const routeDialog = document.querySelector('#routeDialog');
 const routeEvidenceDialog = document.querySelector('#routeEvidenceDialog');
+const baselineEvidenceDialog = document.querySelector('#baselineEvidenceDialog');
 const state = loadState();
 let activeView = 'objective';
 let signatures = [];
@@ -139,7 +140,7 @@ function renderObjective(obj) {
   const current = lastOf(obj.observations)?.value ?? obj.baseline.value;
   const baselineUrl = safeUrl(obj.baseline.evidence?.url);
   const timeline = [
-    `<div class="timeline-row"><span class="timeline-marker"></span><span class="timeline-date">${escapeHtml(fmtDate(obj.createdAt))}</span><span class="timeline-description"><strong>Baseline recorded</strong><span>${escapeHtml(obj.baseline.value)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''}</span></span><a class="timeline-link" href="${escapeHtml(baselineUrl)}" target="_blank" rel="noopener">View evidence</a></div>`,
+    `<div class="timeline-row"><span class="timeline-marker"></span><span class="timeline-date">${escapeHtml(fmtDate(obj.createdAt))}</span><span class="timeline-description"><strong>Starting state</strong><span>${escapeHtml(obj.baseline.value)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''}</span></span>${baselineUrl ? `<a class="timeline-link" href="${escapeHtml(baselineUrl)}" target="_blank" rel="noopener">View starting proof</a>` : '<span class="timeline-pending">Proof not added</span>'}</div>`,
     ...obj.observations.map((entry) => `<div class="timeline-row"><span class="timeline-marker"></span><span class="timeline-date">${escapeHtml(fmtDate(entry.at))}</span><span class="timeline-description"><strong>Observed state change</strong><span>${escapeHtml(entry.value)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''} · ${escapeHtml(entry.evidence.note)}</span></span><a class="timeline-link" href="${escapeHtml(safeUrl(entry.evidence.url))}" target="_blank" rel="noopener">View evidence</a></div>`),
     `<div class="timeline-row"><span class="timeline-marker"></span><span class="timeline-date">Target</span><span class="timeline-description"><strong>${escapeHtml(targetText(obj))}</strong><span>${result.targetMet ? 'Target condition met' : 'Target condition not met'}</span></span></div>`,
   ].join('');
@@ -158,7 +159,7 @@ function renderObjective(obj) {
           <span class="fact-label">Desired state</span><span class="fact-value">${escapeHtml(targetText(obj))}</span>
           <span class="fact-label">Next transition</span><span class="fact-value">${escapeHtml(obj.nextAction)}</span>
           <span class="fact-label">Current blocker</span><span class="fact-value">${escapeHtml(obj.blocker)}</span>
-          <span class="fact-label">Acceptance</span><span class="fact-value">Value changes from baseline; target condition is met; baseline and after evidence have different SHA-256 hashes.</span>
+          <span class="fact-label">Done means</span><span class="fact-value">The measured state changes to your target, with proof of both states.</span>
         </div>
       </div>
       <div class="rule-stack">
@@ -171,13 +172,14 @@ function renderObjective(obj) {
       <div class="timeline">${timeline}</div>
     </section>
     <section class="section">
-      <div class="section-header"><div><h2>Evidence · before / after</h2><p>Artifact hashes are retained with the state snapshot.</p></div></div>
+      <div class="section-header"><div><h2>Proof of the change</h2><p>Starting proof is needed before the objective can pass. Add after-proof when you record a change.</p></div></div>
       <div class="evidence-grid">
-        <div class="evidence-card"><div><strong>Before · ${escapeHtml(obj.baseline.value)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''}</strong><span>${escapeHtml(obj.baseline.evidence?.filename || 'Evidence artifact missing')}</span></div><span class="evidence-arrow">${obj.baseline.evidence?.sha256 ? 'SHA-256 saved' : 'No hash'}</span></div>
-        <div class="evidence-card"><div><strong>After · ${escapeHtml(current)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''}</strong><span>${escapeHtml(nextEvidence?.filename || 'No after-state artifact')}</span></div><span class="evidence-arrow">${nextEvidence?.sha256 ? 'SHA-256 saved' : 'No hash'}</span></div>
+        <div class="evidence-card ${obj.baseline.evidence?.sha256 ? '' : 'evidence-missing'}"><div><strong>Starting value · ${escapeHtml(obj.baseline.value)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''}</strong><span>${escapeHtml(obj.baseline.evidence?.filename || 'Starting proof has not been added yet.')}</span></div>${obj.baseline.evidence?.sha256 ? '<span class="evidence-arrow">Proof saved</span>' : '<button class="quiet-button" id="addBaselineEvidenceBtn" type="button">Add starting proof</button>'}</div>
+        <div class="evidence-card"><div><strong>Current value · ${escapeHtml(current)}${obj.unit ? ` ${escapeHtml(obj.unit)}` : ''}</strong><span>${escapeHtml(nextEvidence?.filename || 'Add proof after a real state change.')}</span></div><span class="evidence-arrow">${nextEvidence?.sha256 ? 'Proof saved' : 'Not recorded'}</span></div>
       </div>
     </section>`;
   document.querySelector('#recordTransitionBtn')?.addEventListener('click', () => openTransitionDialog(obj));
+  document.querySelector('#addBaselineEvidenceBtn')?.addEventListener('click', openBaselineEvidenceDialog);
 }
 
 function generationLocked(obj) {
@@ -334,31 +336,15 @@ function scanText(text, flags) {
   return hits;
 }
 
-let objectiveWizardStep = 1;
-
-function showObjectiveStep(step) {
-  objectiveWizardStep = Math.max(1, Math.min(3, Number(step) || 1));
-  document.querySelectorAll('[data-objective-step]').forEach((panel) => {
-    const active = Number(panel.dataset.objectiveStep) === objectiveWizardStep;
-    panel.hidden = !active;
-    panel.querySelectorAll('[data-wizard-required]').forEach((field) => { field.required = active; });
-  });
-  document.querySelectorAll('[data-wizard-indicator]').forEach((item) => {
-    const number = Number(item.dataset.wizardIndicator);
-    item.classList.toggle('is-current', number === objectiveWizardStep);
-    item.classList.toggle('is-complete', number < objectiveWizardStep);
-    if (number === objectiveWizardStep) item.setAttribute('aria-current', 'step');
-    else item.removeAttribute('aria-current');
-  });
-  document.querySelectorAll('[data-wizard-back]').forEach((button) => { button.hidden = objectiveWizardStep === 1; });
-  objectiveDialog.scrollTop = 0;
-}
-
 function openObjectiveDialog() {
   document.querySelector('#objectiveForm').reset();
-  document.querySelector('#objectiveDialogTitle').textContent = 'Set your objective';
-  showObjectiveStep(1);
+  document.querySelector('#objectiveDialogTitle').textContent = 'Set an objective';
   objectiveDialog.showModal();
+}
+
+function openBaselineEvidenceDialog() {
+  document.querySelector('#baselineEvidenceForm').reset();
+  document.querySelector('#baselineEvidenceDialog').showModal();
 }
 
 function openTransitionDialog(obj) {
@@ -383,40 +369,45 @@ document.querySelector('#importBtn').addEventListener('click', () => document.qu
 document.querySelector('#importFile').addEventListener('change', importState);
 document.querySelector('#exportBtn').addEventListener('click', exportState);
 document.querySelector('#cancelObjective').addEventListener('click', () => objectiveDialog.close());
-document.querySelectorAll('[data-wizard-next]').forEach((button) => button.addEventListener('click', () => {
-  const form = document.querySelector('#objectiveForm');
-  if (!form.reportValidity()) return;
-  showObjectiveStep(button.dataset.wizardNext);
-}));
-document.querySelectorAll('[data-wizard-back]').forEach((button) => button.addEventListener('click', () => {
-  showObjectiveStep(objectiveWizardStep - 1);
-}));
+document.querySelector('#cancelBaselineEvidence').addEventListener('click', () => baselineEvidenceDialog.close());
+document.querySelector('#cancelBaselineEvidence2').addEventListener('click', () => baselineEvidenceDialog.close());
 document.querySelector('#cancelTransition').addEventListener('click', () => transitionDialog.close());
 document.querySelector('#cancelRoute').addEventListener('click', () => routeDialog.close());
 document.querySelector('#cancelRouteEvidence').addEventListener('click', () => { pendingRouteResult = null; routeEvidenceDialog.close(); });
 
-document.querySelector('#objectiveForm').addEventListener('submit', async (event) => {
+document.querySelector('#objectiveForm').addEventListener('submit', (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  const baselineEvidence = await fileEvidence(form.get('baselineEvidenceFile'));
-  if (!baselineEvidence) return toast('Attach the baseline evidence artifact.');
-  const operator = String(form.get('operator'));
   const baseline = String(form.get('baseline')).trim();
   const target = String(form.get('target')).trim();
-  const baselineUrl = safeUrl(form.get('baselineEvidence'));
-  if (!baselineUrl) return toast('Use an HTTPS baseline evidence link.');
   const old = activeObjective();
   if (old) old.archivedAt = new Date().toISOString();
   const obj = {
     id: id(), revision: old ? old.revision + 1 : 1, createdAt: new Date().toISOString(),
-    statement: String(form.get('statement')).trim(), unit: String(form.get('unit')).trim(),
-    target: { operator, value: target }, blocker: String(form.get('blocker')).trim(),
-    nextAction: String(form.get('nextAction')).trim(), baseline: { value: baseline, sourceConfirmed: Boolean(form.get('baselineSourceConfirmed')), evidence: { ...baselineEvidence, url: baselineUrl } },
+    statement: String(form.get('statement')).trim(), unit: String(form.get('unit') || '').trim(),
+    target: { operator: String(form.get('operator') || 'eq'), value: target },
+    blocker: 'Not identified yet. Discover what is preventing the target.',
+    nextAction: 'Identify the current blocker and choose the next executable step.',
+    baseline: { value: baseline, sourceConfirmed: false, evidence: null },
     observations: [], generation: 1, routes: [], generationHistory: [], decisionTraceRequired: true, decisionTrace: null,
   };
   state.objectives.push(obj);
   state.activeId = obj.id;
-  persist(); objectiveDialog.close(); activeView = 'objective'; render(); toast('Objective frozen and saved in this browser.');
+  persist(); objectiveDialog.close(); activeView = 'objective'; render(); toast('Objective saved. Add starting proof from the Objective screen.');
+});
+
+document.querySelector('#baselineEvidenceForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const obj = activeObjective();
+  if (!obj) return;
+  const form = new FormData(event.currentTarget);
+  const url = safeUrl(form.get('baselineEvidence'));
+  if (!url) return toast('Use an HTTPS link for the starting-state source.');
+  const evidence = await fileEvidence(form.get('baselineEvidenceFile'));
+  if (!evidence || !form.get('baselineSourceConfirmed')) return toast('Attach proof and confirm it shows the recorded starting value.');
+  obj.baseline.evidence = { ...evidence, url };
+  obj.baseline.sourceConfirmed = true;
+  persist(); baselineEvidenceDialog.close(); render(); toast('Starting proof saved.');
 });
 
 document.querySelector('#transitionForm').addEventListener('submit', async (event) => {
