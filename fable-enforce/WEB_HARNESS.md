@@ -4,7 +4,7 @@ Outcome Gate is a static, free-to-host PWA for phone browsers and older MacBook 
 
 ## Deploy
 
-The repository workflow at `.github/workflows/pages.yml` tests the canonical filter, v4.2 objective gate, state exporter, and JavaScript syntax, then publishes `fable-enforce/web` from `main` to GitHub Pages. GitHub Pages on this public repository does not need a paid hosting service. The site URL is `https://keepinitkrispy.github.io/Persistent-Fable/` once Pages finishes its first deployment.
+The repository workflow at `.github/workflows/pages.yml` tests the canonical filter, v4.2 objective gate, state exporter, and JavaScript syntax, then publishes `fable-enforce/web` from `main` to GitHub Pages. GitHub Pages on this public repository does not need a paid hosting service. One-time owner setup: open [repository Pages settings](https://github.com/keepinitkrispy/Persistent-Fable/settings/pages) and set **Build and deployment → Source → GitHub Actions**. GitHub's `GITHUB_TOKEN` cannot create the repository's Pages site. After that, the next workflow run publishes the app at `https://keepinitkrispy.github.io/Persistent-Fable/`.
 
 ## Use
 
