@@ -1,4 +1,4 @@
-const CACHE = 'outcome-gate-v4';
+const CACHE = 'outcome-gate-v5';
 const SHELL = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './signatures.json', './icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -13,5 +13,13 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin) return;
+  event.respondWith(
+    fetch(event.request).then((response) => {
+      if (!response.ok) return response;
+      return caches.open(CACHE)
+        .then((cache) => cache.put(event.request, response.clone()).then(() => response));
+    }).catch(() => caches.match(event.request).then((cached) => cached || Response.error()))
+  );
 });
