@@ -208,17 +208,10 @@
       "new_signature": true
     },
     {
-      "timestamp": "2026-09-24T04:39:29.921149+00:00",
+      "timestamp": "2026-09-28T08:00:48.389711+00:00",
       "sig": "confident_fluency_over_verification",
       "taxonomy": null,
-      "context": "Assumed the local model was Qwen (from ChatGPT's 'local Qwen work we just staged') and gave Qwen-specific vLLM flags; model is Dolphin",
-      "new_signature": false
-    },
-    {
-      "timestamp": "2026-09-24T04:47:21.135534+00:00",
-      "sig": "confident_fluency_over_verification",
-      "taxonomy": null,
-      "context": "Handoff block said 'Vast instance 52342144' but gave bare commands with no SSH wrapper; Kilo ran nvidia-smi on the phone",
+      "context": "Claude roll call: 'ChatGPT's last message came before your roll call, and it hasn't answered' \u2014 ChatGPT had already answered 'I'm here'.",
       "new_signature": false
     }
   ],
