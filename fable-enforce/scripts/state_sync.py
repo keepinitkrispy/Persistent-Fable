@@ -74,7 +74,41 @@ def import_filter():
     return mod
 
 
-def derive_state(cfg: dict) -> dict:
+def read_audit_log(path: str) -> list:
+    entries = []
+    if not os.path.exists(path):
+        return entries
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                entries.append(json.loads(line))
+    return entries
+
+
+def audit_entry_key(entry: dict) -> str:
+    return json.dumps(entry, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def merge_audit_logs(remote_entries: list, local_entries: list) -> list:
+    """Return a stable union with remote history first, then new local entries."""
+    merged = []
+    seen = set()
+    for entry in remote_entries + local_entries:
+        key = audit_entry_key(entry)
+        if key not in seen:
+            merged.append(entry)
+            seen.add(key)
+    return merged
+
+
+def write_audit_log(path: str, entries: list) -> None:
+    with open(path, "w") as f:
+        for entry in entries:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def derive_state(cfg: dict, audit_log_override=None) -> dict:
     """Build canonical state dict FROM filter.py's live SIGNATURES/SEED_CORPUS.
     This is the only place state.json content is produced — never hand-edited."""
     mod = import_filter()
@@ -95,13 +129,7 @@ def derive_state(cfg: dict) -> dict:
             "note": note,
             "flags": flags,
         })
-    audit_log = []
-    if os.path.exists(AUDIT_LOG_PATH):
-        with open(AUDIT_LOG_PATH) as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    audit_log.append(json.loads(line))
+    audit_log = audit_log_override if audit_log_override is not None else read_audit_log(AUDIT_LOG_PATH)
     return {
         "version": "2.0",
         "canonical_repo": f"{cfg['owner']}/{cfg['repo']}",
@@ -138,10 +166,9 @@ def cmd_push(reason: str) -> int:
     cfg = load_repo_config()
     token = load_token()
 
-    # 1. Derive state fresh from filter.py (source of truth) — this must work
-    #    regardless of whether the skill's own install dir is a git repo, since
-    #    an installed skill is typically read-only.
-    state = derive_state(cfg)
+    # 1. Fresh-clone the remote first so append-only history can be merged before
+    #    any local state is written into the working tree.
+    required_audit_keys = set()
 
     with tempfile.TemporaryDirectory() as work:
         clone = run(["git", "clone", "--depth", "1", "--branch", cfg["branch"],
@@ -153,6 +180,20 @@ def cmd_push(reason: str) -> int:
         target_dir = os.path.join(work, "fable-enforce")
         os.makedirs(os.path.join(target_dir, "scripts"), exist_ok=True)
 
+        # Merge audit history instead of overwriting the remote log with a stale
+        # local copy. Every entry present in the fresh clone must survive.
+        remote_audit_path = os.path.join(target_dir, "scripts", "audit_log.jsonl")
+        remote_audit = read_audit_log(remote_audit_path)
+        local_audit = read_audit_log(AUDIT_LOG_PATH)
+        merged_audit = merge_audit_logs(remote_audit, local_audit)
+        remote_keys = {audit_entry_key(e) for e in remote_audit}
+        required_audit_keys = {audit_entry_key(e) for e in merged_audit}
+        if not remote_keys.issubset(required_audit_keys):
+            print("STATE: audit monotonicity check failed before write — refusing to push.")
+            return 1
+
+        state = derive_state(cfg, audit_log_override=merged_audit)
+
         # Copy current local files (filter.py = source of truth, plus docs/scripts)
         # into the freshly-cloned working tree, then write derived state on top.
         import shutil
@@ -162,10 +203,7 @@ def cmd_push(reason: str) -> int:
                 shutil.copy(src, os.path.join(target_dir, fname))
         for fname in ("filter.py", "state_sync.py", "log_violation.py"):
             shutil.copy(os.path.join(HERE, fname), os.path.join(target_dir, "scripts", fname))
-        if os.path.exists(AUDIT_LOG_PATH):
-            shutil.copy(AUDIT_LOG_PATH, os.path.join(target_dir, "scripts", "audit_log.jsonl"))
-        else:
-            open(os.path.join(target_dir, "scripts", "audit_log.jsonl"), "a").close()
+        write_audit_log(os.path.join(target_dir, "scripts", "audit_log.jsonl"), merged_audit)
 
         state_out = os.path.join(target_dir, "fable_state.json")
         with open(state_out, "w") as f:
@@ -213,6 +251,12 @@ def cmd_push(reason: str) -> int:
         remote_sha = sha256_file(remote_state_path)
         if remote_sha != local_sha:
             print(f"STATE: HASH MISMATCH. expected={local_sha} remote={remote_sha}. Not claiming persistence.")
+            return 1
+        fresh_audit_path = os.path.join(tmp, "fable-enforce", "scripts", "audit_log.jsonl")
+        fresh_audit_keys = {audit_entry_key(e) for e in read_audit_log(fresh_audit_path)}
+        missing_audit = required_audit_keys - fresh_audit_keys
+        if missing_audit:
+            print(f"STATE: fresh-clone audit monotonicity FAILED — {len(missing_audit)} required entr(y/ies) missing. Not claiming persistence.")
             return 1
         remote_filter = os.path.join(tmp, "fable-enforce", "scripts", "filter.py")
         rt = run([sys.executable, remote_filter, "--test"], check=False)
